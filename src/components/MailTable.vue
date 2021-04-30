@@ -22,9 +22,9 @@
     </tbody>
   </table>
 
-  <mail-view v-if="openedEmail" :email="openedEmail" />
-
-
+  <modal-view v-if="openedEmail" @closeModal="openedEmail = null">
+    <mail-view :email="openedEmail" />
+  </modal-view>
 </template>
 
 <script>
@@ -32,10 +32,12 @@ import { format } from 'date-fns'
 import axios from 'axios'
 import { ref } from 'vue'
 import MailView from './MailView.vue'
+import ModalView from './ModalView.vue'
 
 export default {
   components: {
-    MailView
+    MailView,
+    ModalView
   },
   async setup() {
     let { data } = await axios.get('http://localhost:3000/emails')
@@ -77,7 +79,7 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style>
 .btn--archive {
   border: 0;
   color: tomato;

@@ -5,7 +5,7 @@
         v-for="email in unarchivedEmails"
         :key="email.id"
         :class="['clickable', email.read ? 'read' : '']"
-        @click="readEmail(email)"
+        @click="openEmail(email)"
       >
         <td>{{ email.from }}</td>
         <td>
@@ -21,19 +21,30 @@
       </tr>
     </tbody>
   </table>
+
+  <mail-view v-if="openedEmail" :email="openedEmail" />
+
+
 </template>
 
 <script>
 import { format } from 'date-fns'
 import axios from 'axios'
+import { ref } from 'vue'
+import MailView from './MailView.vue'
 
 export default {
+  components: {
+    MailView
+  },
   async setup() {
     let { data } = await axios.get('http://localhost:3000/emails')
     let emails = data
+    let openedEmail = ref(null)
 
-    function readEmail(email) {
+    function openEmail(email) {
       email.read = true
+      openedEmail.value = email
       updateEmail(email)
     }
 
@@ -47,10 +58,11 @@ export default {
     }
 
     return {
-      readEmail,
+      openEmail,
       archiveEmail,
       format,
-      emails
+      emails,
+      openedEmail
     }
   },
   computed: {

@@ -5,13 +5,12 @@
         v-for="email in unarchivedEmails"
         :key="email.id"
         :class="['clickable', email.read ? 'read' : '']"
-        @click="openEmail(email)"
       >
         <td>{{ email.from }}</td>
         <td>
           <input type="checkbox" />
         </td>
-        <td>
+        <td @click="openEmail(email)">
           <p>
             <strong>{{ email.subject }}</strong> - {{ email.body }}
           </p>

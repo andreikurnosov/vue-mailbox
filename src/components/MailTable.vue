@@ -6,10 +6,10 @@
         :key="email.id"
         :class="['clickable', email.read ? 'read' : '']"
       >
-        <td>{{ email.from }}</td>
         <td>
           <input type="checkbox" />
         </td>
+        <td>{{ email.from }}</td>
         <td @click="openEmail(email)">
           <p>
             <strong>{{ email.subject }}</strong> - {{ email.body }}
@@ -22,14 +22,14 @@
   </table>
 
   <modal-view v-if="openedEmail" @closeModal="openedEmail = null">
-    <mail-view :email="openedEmail" />
+    <mail-view :email="openedEmail" @changeEmail="changeEmail" />
   </modal-view>
 </template>
 
 <script>
 import { format } from 'date-fns'
 import axios from 'axios'
-import { ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import MailView from './MailView.vue'
 import ModalView from './ModalView.vue'
 
@@ -38,15 +38,27 @@ export default {
     MailView,
     ModalView
   },
+
   async setup() {
     let { data } = await axios.get('http://localhost:3000/emails')
-    let emails = data
+    let emails = reactive(data)
     let openedEmail = ref(null)
 
+    const sortedEmails = computed(() =>
+      emails.sort((e1, e2) => {
+        return e1.sentAt < e2.sentAt ? 1 : -1
+      })
+    )
+
+    const unarchivedEmails = computed(() => sortedEmails.value.filter(e => !e.archived))
+
     function openEmail(email) {
-      email.read = true
       openedEmail.value = email
-      updateEmail(email)
+
+      if (email) {
+        email.read = true
+        updateEmail(email)
+      }
     }
 
     function archiveEmail(email) {
@@ -58,22 +70,43 @@ export default {
       axios.put(`http://localhost:3000/emails/${email.id}`, email)
     }
 
+    function changeEmail({ toggleRead, toggleArchive, save, closeModal, changeIndex }) {
+      let email = openedEmail.value
+
+      if (toggleRead) {
+        email.read = !email.read
+      }
+
+      if (toggleArchive) {
+        email.archived = !email.archived
+      }
+
+      if (save) {
+        updateEmail(email)
+      }
+
+      if (closeModal) {
+        openedEmail.value = null
+      }
+
+      if (changeIndex) {
+        let emails = unarchivedEmails.value
+        let currentIndex = emails.indexOf(openedEmail.value)
+        let newEmail = emails[currentIndex + changeIndex]
+
+        openEmail(newEmail)
+      }
+    }
+
     return {
       openEmail,
       archiveEmail,
+      changeEmail,
       format,
       emails,
-      openedEmail
-    }
-  },
-  computed: {
-    sortedEmails() {
-      return this.emails.sort((e1, e2) => {
-        return e1.sentAt < e2.sentAt ? 1 : -1
-      })
-    },
-    unarchivedEmails() {
-      return this.sortedEmails.filter(e => !e.archived)
+      openedEmail,
+      unarchivedEmails,
+      sortedEmails
     }
   }
 }

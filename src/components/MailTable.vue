@@ -1,4 +1,5 @@
 <template>
+  <h2>{{ emailSelection.emails.size }} emails selected</h2>
   <table class="mail-table">
     <tbody>
       <tr
@@ -7,9 +8,13 @@
         :class="['clickable', email.read ? 'read' : '']"
       >
         <td>
-          <input type="checkbox" />
+          <input
+            type="checkbox"
+            @click="emailSelection.toggle(email)"
+            :selected="emailSelection.emails.has(email)"
+          />
         </td>
-        <td>{{ email.from }}</td>
+        <td @click="openEmail(email)">{{ email.from }}</td>
         <td @click="openEmail(email)">
           <p>
             <strong>{{ email.subject }}</strong> - {{ email.body }}
@@ -43,6 +48,19 @@ export default {
     let { data } = await axios.get('http://localhost:3000/emails')
     let emails = reactive(data)
     let openedEmail = ref(null)
+
+    let selected = reactive(new Set())
+
+    let emailSelection = {
+      emails: selected,
+      toggle(email) {
+        if (selected.has(email)) {
+          selected.delete(email)
+        } else {
+          selected.add(email)
+        }
+      }
+    }
 
     const sortedEmails = computed(() =>
       emails.sort((e1, e2) => {
@@ -99,6 +117,7 @@ export default {
     }
 
     return {
+      emailSelection,
       openEmail,
       archiveEmail,
       changeEmail,

@@ -37,6 +37,7 @@ import axios from 'axios'
 import { computed, reactive, ref } from 'vue'
 import MailView from './MailView.vue'
 import ModalView from './ModalView.vue'
+import useEmailSelection from '../composables/use-email-selection.js'
 
 export default {
   components: {
@@ -48,19 +49,6 @@ export default {
     let { data } = await axios.get('http://localhost:3000/emails')
     let emails = reactive(data)
     let openedEmail = ref(null)
-
-    let selected = reactive(new Set())
-
-    let emailSelection = {
-      emails: selected,
-      toggle(email) {
-        if (selected.has(email)) {
-          selected.delete(email)
-        } else {
-          selected.add(email)
-        }
-      }
-    }
 
     const sortedEmails = computed(() =>
       emails.sort((e1, e2) => {
@@ -117,7 +105,7 @@ export default {
     }
 
     return {
-      emailSelection,
+      emailSelection: useEmailSelection(),
       openEmail,
       archiveEmail,
       changeEmail,

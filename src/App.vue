@@ -5,6 +5,7 @@
   <h1>
     VMail Inbox
   </h1>
+  <h2>{{ emailSelection.emails.size }} emails selected</h2>
   <Suspense>
     <template #default>
       <mail-table />
@@ -17,11 +18,17 @@
 
 <script>
 import MailTable from './components/MailTable.vue'
+import useEmailSelection from './composables/use-email-selection.js'
 
 export default {
   name: 'App',
   components: {
     MailTable
+  },
+  setup() {
+    return {
+      emailSelection: useEmailSelection()
+    }
   }
 }
 </script>

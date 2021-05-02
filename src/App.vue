@@ -5,7 +5,6 @@
   <h1>
     VMail Inbox
   </h1>
-  <h2>{{ emailSelection.emails.size }} emails selected</h2>
   <Suspense>
     <template #default>
       <mail-table />

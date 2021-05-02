@@ -1,9 +1,13 @@
 <template>
-<bulk-action-bar :emails="unarchivedEmails"  />
+  <button @click="selectScreen('inbox')" :disabled="selectedScreen == 'inbox'">Inbox</button>
+  <button @click="selectScreen('archive')" :disabled="selectedScreen == 'archive'">
+    Archived
+  </button>
+  <bulk-action-bar :emails="filteredEmails" />
   <table class="mail-table">
     <tbody>
       <tr
-        v-for="email in unarchivedEmails"
+        v-for="email in filteredEmails"
         :key="email.id"
         :class="['clickable', email.read ? 'read' : '']"
       >
@@ -52,6 +56,7 @@ export default {
     let { data } = await axios.get('http://localhost:3000/emails')
     let emails = reactive(data)
     let openedEmail = ref(null)
+    let selectedScreen = ref('inbox')
 
     const sortedEmails = computed(() =>
       emails.sort((e1, e2) => {
@@ -59,7 +64,13 @@ export default {
       })
     )
 
-    const unarchivedEmails = computed(() => sortedEmails.value.filter(e => !e.archived))
+    const filteredEmails = computed(() => {
+      if (selectedScreen.value == 'inbox') {
+        return sortedEmails.value.filter(e => !e.archived)
+      } else {
+        return sortedEmails.value.filter(e => e.archived)
+      }
+    })
 
     function openEmail(email) {
       openedEmail.value = email
@@ -99,12 +110,16 @@ export default {
       }
 
       if (changeIndex) {
-        let emails = unarchivedEmails.value
+        let emails = filteredEmails.value
         let currentIndex = emails.indexOf(openedEmail.value)
         let newEmail = emails[currentIndex + changeIndex]
 
         openEmail(newEmail)
       }
+    }
+    function selectScreen(newScreen) {
+      selectedScreen.value = newScreen
+      useEmailSelection().clear()
     }
 
     return {
@@ -115,8 +130,10 @@ export default {
       format,
       emails,
       openedEmail,
-      unarchivedEmails,
-      sortedEmails
+      filteredEmails,
+      sortedEmails,
+      selectedScreen,
+      selectScreen
     }
   }
 }
